@@ -142,10 +142,15 @@ impl WireguardMonitor {
                     }
                 }
                 Err(error) => {
-                    log::error!(
-                        "{}",
-                        error.display_chain_with_msg("First ping to gateway failed")
+                    (on_event)(TunnelEvent::Up(metadata));
+
+                    log::error!("{}",
+                        error.display_chain_with_msg(
+                            "First ping to gateway failed, but let's assume it didn't for 5 minutes"
+                        )
                     );
+
+                    std::thread::sleep(std::time::Duration::from_secs(60 * 5));
                 }
             }
 
