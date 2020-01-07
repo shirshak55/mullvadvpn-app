@@ -34,12 +34,6 @@
 !define RMT_NO_REMAINING_ADAPTERS 1
 !define RMT_SOME_REMAINING_ADAPTERS 2
 
-# Return codes from tapinstall
-!define DEVCON_EXIT_OK 0
-!define DEVCON_EXIT_REBOOT 1
-!define DEVCON_EXIT_FAIL 2
-!define DEVCON_EXIT_USAGE 3
-
 # Log targets
 !define LOG_FILE 0
 !define LOG_VOID 1
@@ -196,6 +190,7 @@
 
 	${If} $0 == ${RMT_NO_REMAINING_ADAPTERS}
 		# Remove the driver altogether
+		# TODO: remove tapinstall.exe dependency
 		nsExec::ExecToStack '"$TEMP\driver\tapinstall.exe" remove ${TAP_HARDWARE_ID}'
 
 		Pop $0
@@ -284,13 +279,12 @@
 	# Update driver.
 	#
 	log::Log "TAP driver is already installed - Updating to latest version"
-	nsExec::ExecToStack '"$TEMP\driver\tapinstall.exe" update "$TEMP\driver\OemVista.inf" ${TAP_HARDWARE_ID}'
+	driverlogic::UpdateTapDriver
 
 	Pop $0
 	Pop $1
 
-	${If} $0 != ${DEVCON_EXIT_OK}
-	${AndIf} $0 != ${DEVCON_EXIT_REBOOT}
+	${If} $0 != ${MULLVAD_SUCCESS}
 		StrCpy $R0 "Failed to update TAP driver: error $0"
 		log::LogWithDetails $R0 $1
 		Goto InstallDriver_return
@@ -325,13 +319,12 @@
 	# If the driver is already installed, this just creates another virtual adapter.
 	#
 	log::Log "Creating new virtual adapter (this also installs the TAP driver, as necessary)"
-	nsExec::ExecToStack '"$TEMP\driver\tapinstall.exe" install "$TEMP\driver\OemVista.inf" ${TAP_HARDWARE_ID}'
+	driverlogic::CreateTapAdapter
 	
 	Pop $0
 	Pop $1
 
-	${If} $0 != ${DEVCON_EXIT_OK}
-	${AndIf} $0 != ${DEVCON_EXIT_REBOOT}
+	${If} $0 != ${MULLVAD_SUCCESS}
 		StrCpy $R0 "Failed to create virtual adapter: error $0"
 		log::LogWithDetails $R0 $1
 		Goto InstallDriver_return

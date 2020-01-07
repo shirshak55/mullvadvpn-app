@@ -313,8 +313,7 @@ void __declspec(dllexport) NSISCALL RollbackTapAliases
 //
 // CreateTapAdapter
 //
-// Creates a new, unnamed TAP adapter. The driver may need
-// to be updated in order for this to have any effect.
+// Creates a new, unnamed TAP adapter.
 //
 
 void __declspec(dllexport) NSISCALL CreateTapAdapter
@@ -332,6 +331,7 @@ void __declspec(dllexport) NSISCALL CreateTapAdapter
 	try
 	{
 		Context::CreateTap();
+		Context::UpdateDriver();
 
 		pushstring(L"");
 		pushint(NsisStatus::SUCCESS);
