@@ -62,6 +62,9 @@ public:
 
 	static DeletionResult DeleteMullvadAdapter();
 
+	static void CreateTap();
+	static void UpdateDriver();
+
 private:
 
 	static std::optional<NetworkAdapter> FindMullvadAdapter(const std::set<NetworkAdapter> &tapAdapters);

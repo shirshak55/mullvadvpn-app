@@ -311,6 +311,79 @@ void __declspec(dllexport) NSISCALL RollbackTapAliases
 }
 
 //
+// CreateTapAdapter
+//
+// Creates a new, unnamed TAP adapter. The driver may need
+// to be updated in order for this to have any effect.
+//
+
+void __declspec(dllexport) NSISCALL CreateTapAdapter
+(
+	HWND hwndParent,
+	int string_size,
+	LPTSTR variables,
+	stack_t **stacktop,
+	extra_parameters *extra,
+	...
+)
+{
+	EXDLL_INIT();
+
+	try
+	{
+		Context::CreateTap();
+
+		pushstring(L"");
+		pushint(NsisStatus::SUCCESS);
+	}
+	catch (std::exception & err)
+	{
+		pushstring(common::string::ToWide(err.what()).c_str());
+		pushint(NsisStatus::GENERAL_ERROR);
+	}
+	catch (...)
+	{
+		pushstring(L"Unspecified error");
+		pushint(NsisStatus::GENERAL_ERROR);
+	}
+}
+
+//
+// UpdateTapDriver
+//
+
+void __declspec(dllexport) NSISCALL UpdateTapDriver
+(
+	HWND hwndParent,
+	int string_size,
+	LPTSTR variables,
+	stack_t **stacktop,
+	extra_parameters *extra,
+	...
+)
+{
+	EXDLL_INIT();
+
+	try
+	{
+		Context::UpdateDriver();
+
+		pushstring(L"");
+		pushint(NsisStatus::SUCCESS);
+	}
+	catch (std::exception & err)
+	{
+		pushstring(common::string::ToWide(err.what()).c_str());
+		pushint(NsisStatus::GENERAL_ERROR);
+	}
+	catch (...)
+	{
+		pushstring(L"Unspecified error");
+		pushint(NsisStatus::GENERAL_ERROR);
+	}
+}
+
+//
 // Deinitialize
 //
 // Call this function once during shutdown.
