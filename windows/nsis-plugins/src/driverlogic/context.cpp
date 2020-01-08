@@ -45,6 +45,7 @@ void LogAdapters(const std::wstring &description, const T &adapters)
 	{
 		details.emplace_back(L"Adapter");
 
+		details.emplace_back(std::wstring(L"    Device instance ID: ").append(adapter.deviceInstanceId));
 		details.emplace_back(std::wstring(L"    Guid: ").append(adapter.guid));
 		details.emplace_back(std::wstring(L"    Name: ").append(adapter.name));
 		details.emplace_back(std::wstring(L"    Alias: ").append(adapter.alias));
@@ -383,6 +384,8 @@ void Context::recordCurrentState()
 
 void Context::rollbackTapAliases()
 {
+	LogAdapters(L"Enumerable network TAP adapters", m_currentState);
+
 	common::network::Nci nci;
 
 	for (const auto &adapter : m_currentState)
@@ -390,9 +393,21 @@ void Context::rollbackTapAliases()
 		const auto oldInfo = m_baseline.find(adapter);
 		if (m_baseline.end() != oldInfo)
 		{
-			GUID guidObj = common::Guid::FromString(&adapter.guid[0]);
+			std::vector<std::wstring> details;
+			details.push_back(std::wstring(L"Device instance ID: ").append(adapter.deviceInstanceId));
+			details.push_back(std::wstring(L"Alias: ").append(adapter.alias));
+			details.push_back(std::wstring(L"Restored alias: ").append(oldInfo->alias));
+			PluginLogWithDetails(L"Renaming adapter", details);
 
+			GUID guidObj = common::Guid::FromString(&adapter.guid[0]);
 			nci.setConnectionName(guidObj, oldInfo->alias.c_str());
+		}
+		else
+		{
+			std::wstringstream message;
+			message << L"Could not find adapter with ID "
+				<< adapter.deviceInstanceId;
+			PluginLog(message.str());
 		}
 	}
 }
