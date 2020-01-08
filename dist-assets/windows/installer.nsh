@@ -72,6 +72,8 @@
 
 	SetOutPath "$TEMP\driver"
 
+	File "${BUILD_RESOURCES_DIR}\..\windows\driverlogic\bin\x64-Release\driverlogic.exe"
+
 	${If} ${AtLeastWin10}
 		File "${BUILD_RESOURCES_DIR}\binaries\x86_64-pc-windows-msvc\driver\ndis6\*"
 		File "${BUILD_RESOURCES_DIR}\binaries\x86_64-pc-windows-msvc\driver\ndis6\win10\*"
@@ -279,8 +281,7 @@
 	# Update driver.
 	#
 	log::Log "TAP driver is already installed - Updating to latest version"
-	driverlogic::UpdateTapDriver
-
+	nsExec::ExecToStack '"$TEMP\driver\driverlogic.exe" update'
 	Pop $0
 	Pop $1
 
@@ -319,8 +320,7 @@
 	# If the driver is already installed, this just creates another virtual adapter.
 	#
 	log::Log "Creating new virtual adapter (this also installs the TAP driver, as necessary)"
-	driverlogic::CreateTapAdapter
-	
+	nsExec::ExecToStack '"$TEMP\driver\driverlogic.exe" create-tap'
 	Pop $0
 	Pop $1
 
