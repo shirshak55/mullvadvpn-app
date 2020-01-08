@@ -7,6 +7,4 @@ EstablishBaseline
 IdentifyNewAdapter
 RemoveMullvadTap
 RollbackTapAliases
-CreateTapAdapter
-UpdateTapDriver
 Deinitialize
