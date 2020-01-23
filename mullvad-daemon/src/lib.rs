@@ -955,34 +955,29 @@ where
     }
 
     fn on_get_current_location(&self, tx: oneshot::Sender<Option<GeoIpLocation>>) {
-        // use self::TunnelState::*;
+        use self::TunnelState::*;
         // let get_location: Box<dyn Future<Item = Option<GeoIpLocation>, Error = ()> + Send> =
-        //     match &self.tunnel_state {
-        //         Disconnected => Box::new(self.get_geo_location().map(Some)),
-        //         Connecting { location, .. } => Box::new(future::result(Ok(location.clone()))),
-        //         Disconnecting(..) => Box::new(future::result(Ok(self.build_location_from_relay()))),
-        //         Connected { location, .. } => {
-        //             let relay_location = location.clone();
-        //             Box::new(
-        //                 self.get_geo_location()
-        //                     .map(|fetched_location| GeoIpLocation {
-        //                         ipv4: fetched_location.ipv4,
-        //                         ipv6: fetched_location.ipv6,
-        //                         ..relay_location.unwrap_or(fetched_location)
-        //                     })
-        //                     .map(Some),
-        //             )
-        //         }
-        //         Error(..) => {
-        //             // We are not online at all at this stage so no location data is available.
-        //             Box::new(future::result(Ok(None)))
-        //         }
-        //     };
+        let location =
+            match &self.tunnel_state {
+                Disconnected => {
+                    None
+                },
+                Connecting { location, .. } => location.clone(),
+                Disconnecting(..) => self.build_location_from_relay(),
+                Connected { location, .. } => {
+                    let relay_location = location.clone();
+                    relay_location
+                }
+                Error(..) => {
+                    None
+                }
+            };
+        Self::oneshot_send(tx, location, "current location");
 
         // self.tokio_remote.spawn(move |_| {
         //     get_location.map(|location| Self::oneshot_send(tx, location, "current location"))
         // });
-        Self::oneshot_send(tx, None, "current location");
+        ;
     }
 
     // fn get_geo_location(&self) -> impl Future<Item = GeoIpLocation, Error = ()> {
