@@ -10,7 +10,7 @@
 
 use chrono::{offset::Utc, DateTime};
 use jsonrpc_client_core::{expand_params, jsonrpc_client};
-use jsonrpc_client_http::{header::Host, HttpTransport, HttpTransportBuilder};
+use jsonrpc_client_http::{HttpTransport, HttpTransportBuilder};
 use mullvad_types::{
     account::{AccountToken, VoucherSubmission},
     relay_list::RelayList,
