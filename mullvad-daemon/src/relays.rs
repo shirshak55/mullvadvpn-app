@@ -145,14 +145,14 @@ impl ParsedRelays {
 pub struct RelaySelector {
     parsed_relays: Arc<Mutex<ParsedRelays>>,
     rng: ThreadRng,
-    updater: RelayListUpdaterHandle,
+    // updater: RelayListUpdaterHandle,
 }
 
 impl RelaySelector {
     /// Returns a new `RelaySelector` backed by relays cached on disk. Use the `update` method
     /// to refresh the relay list from the internet.
     pub fn new(
-        rpc_handle: HttpHandle,
+        // rpc_handle: HttpHandle,
         on_update: impl Fn(&RelayList) + Send + 'static,
         resource_dir: &Path,
         cache_dir: &Path,
@@ -174,16 +174,16 @@ impl RelaySelector {
                 .format(DATE_TIME_FORMAT_STR)
         );
         let parsed_relays = Arc::new(Mutex::new(unsynchronized_parsed_relays));
-        let updater = RelayListUpdater::spawn(
-            rpc_handle,
-            cache_path,
-            parsed_relays.clone(),
-            Box::new(on_update),
-        );
+        // let updater = RelayListUpdater::spawn(
+        //     rpc_handle,
+        //     cache_path,
+        //     parsed_relays.clone(),
+        //     Box::new(on_update),
+        // );
         RelaySelector {
             parsed_relays,
             rng: rand::thread_rng(),
-            updater,
+            // updater,
         }
     }
 

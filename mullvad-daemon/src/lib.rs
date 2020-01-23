@@ -401,7 +401,7 @@ where
             relay_list_listener.notify_relay_list(relay_list.clone());
         };
         let relay_selector = relays::RelaySelector::new(
-            rpc_handle.clone(),
+            // rpc_handle.clone(),
             on_relay_list_update,
             &resource_dir,
             &cache_dir,
