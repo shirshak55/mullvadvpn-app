@@ -503,9 +503,6 @@ where
 
         self.set_target_state(TargetState::Secured);
         while let Some(Ok(event)) = self.rx.next() {
-            if let &TunnelState::Connected{ .. } = &self.tunnel_state {
-                continue
-            }
             self.handle_event(event)?;
             if self.state == DaemonExecutionState::Finished {
                 break;
