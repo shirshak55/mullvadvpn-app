@@ -358,7 +358,7 @@ impl ManagementInterfaceEventBroadcaster {
 impl Drop for ManagementInterfaceEventBroadcaster {
     fn drop(&mut self) {
         if let Some(close_handle) = self.close_handle.take() {
-            close_handle.close();
+            // close_handle.close();
         }
     }
 }

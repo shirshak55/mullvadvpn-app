@@ -362,81 +362,83 @@ impl KeyManager {
         rotation_interval_secs: u64,
         account_token: AccountToken,
     ) -> Box<dyn Future<Item = (), Error = Error> + Send> {
-        log::debug!("create_automatic_rotation");
+        // log::debug!("create_automatic_rotation");
 
-        let fut = Self::next_automatic_rotation(
-            daemon_tx.clone(),
-            http_handle.clone(),
-            public_key.clone(),
-            rotation_interval_secs,
-            account_token.clone(),
-        );
+        // let fut = Self::next_automatic_rotation(
+        //     daemon_tx.clone(),
+        //     http_handle.clone(),
+        //     public_key.clone(),
+        //     rotation_interval_secs,
+        //     account_token.clone(),
+        // );
 
-        let create_repeat_future = move |result: Result<PublicKey>| match result {
-            Ok(next_public_key) => Self::create_automatic_rotation(
-                daemon_tx,
-                http_handle,
-                next_public_key,
-                rotation_interval_secs,
-                account_token,
-            ),
-            Err(Error::TooManyKeys) => Box::new(futures::future::ok(())),
-            Err(e) => {
-                log::error!(
-                    "Key rotation failed: {}. Retrying in {} seconds",
-                    e,
-                    AUTOMATIC_ROTATION_RETRY_DELAY.as_secs(),
-                );
+        // let create_repeat_future = move |result: Result<PublicKey>| match result {
+        //     Ok(next_public_key) => Self::create_automatic_rotation(
+        //         daemon_tx,
+        //         http_handle,
+        //         next_public_key,
+        //         rotation_interval_secs,
+        //         account_token,
+        //     ),
+        //     Err(Error::TooManyKeys) => Box::new(futures::future::ok(())),
+        //     Err(e) => {
+        //         log::error!(
+        //             "Key rotation failed: {}. Retrying in {} seconds",
+        //             e,
+        //             AUTOMATIC_ROTATION_RETRY_DELAY.as_secs(),
+        //         );
 
-                Box::new(
-                    tokio_timer::wheel()
-                        .build()
-                        .sleep(AUTOMATIC_ROTATION_RETRY_DELAY)
-                        .then(move |_| {
-                            Self::create_automatic_rotation(
-                                daemon_tx,
-                                http_handle,
-                                public_key,
-                                rotation_interval_secs,
-                                account_token,
-                            )
-                        }),
-                )
-            }
-        };
+        //         Box::new(
+        //             tokio_timer::wheel()
+        //                 .build()
+        //                 .sleep(AUTOMATIC_ROTATION_RETRY_DELAY)
+        //                 .then(move |_| {
+        //                     Self::create_automatic_rotation(
+        //                         daemon_tx,
+        //                         http_handle,
+        //                         public_key,
+        //                         rotation_interval_secs,
+        //                         account_token,
+        //                     )
+        //                 }),
+        //         )
+        //     }
+        // };
 
-        Box::new(fut.then(create_repeat_future).map(|_| ()))
+        // // Box::new(fut.then(create_repeat_future).map(|_| ()))
+        Box::new(futures::future::ok(()))
+
     }
 
     fn run_automatic_rotation(&mut self, account_token: AccountToken, public_key: PublicKey) {
-        self.stop_automatic_rotation();
+        // self.stop_automatic_rotation();
 
-        if self.auto_rotation_interval == Duration::new(0, 0) {
-            // disabled
-            return;
-        }
+        // if self.auto_rotation_interval == Duration::new(0, 0) {
+        //     // disabled
+        //     return;
+        // }
 
-        // Schedule cancellable series of repeating rotation tasks
-        let fut = Self::create_automatic_rotation(
-            self.daemon_tx.clone(),
-            self.http_handle.clone(),
-            public_key,
-            self.auto_rotation_interval.as_secs(),
-            account_token,
-        );
-        let (fut, cancel_handle) = Cancellable::new(fut);
+        // // Schedule cancellable series of repeating rotation tasks
+        // let fut = Self::create_automatic_rotation(
+        //     self.daemon_tx.clone(),
+        //     self.http_handle.clone(),
+        //     public_key,
+        //     self.auto_rotation_interval.as_secs(),
+        //     account_token,
+        // );
+        // let (fut, cancel_handle) = Cancellable::new(fut);
 
-        if let Err(e) = self.tokio_remote.execute(fut.map_err(|_| ())) {
-            log::error!("Failed to execute auto key rotation: {:?}", e.kind());
-        }
-        self.abort_scheduler_tx = Some(cancel_handle);
+        // if let Err(e) = self.tokio_remote.execute(fut.map_err(|_| ())) {
+        //     log::error!("Failed to execute auto key rotation: {:?}", e.kind());
+        // }
+        // self.abort_scheduler_tx = Some(cancel_handle);
     }
 
     fn stop_automatic_rotation(&mut self) {
-        if let Some(cancel_handle) = self.abort_scheduler_tx.take() {
-            log::info!("Stopping automatic key rotation");
-            cancel_handle.cancel();
-        }
+        // if let Some(cancel_handle) = self.abort_scheduler_tx.take() {
+        //     log::info!("Stopping automatic key rotation");
+        //     cancel_handle.cancel();
+        // }
     }
 }
 

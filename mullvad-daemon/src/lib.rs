@@ -273,11 +273,11 @@ pub struct Daemon<L: EventListener = ManagementInterfaceEventBroadcaster> {
     event_listener: L,
     settings: Settings,
     account_history: account_history::AccountHistory,
-    wg_key_proxy: WireguardKeyProxy<HttpHandle>,
-    accounts_proxy: AccountsProxy<HttpHandle>,
-    https_handle: mullvad_rpc::rest::RequestSender,
-    wireguard_key_manager: wireguard::KeyManager,
-    tokio_remote: tokio_core::reactor::Remote,
+    // wg_key_proxy: WireguardKeyProxy<HttpHandle>,
+    // accounts_proxy: AccountsProxy<HttpHandle>,
+    // https_handle: mullvad_rpc::rest::RequestSender,
+    // wireguard_key_manager: wireguard::KeyManager,
+    // tokio_remote: tokio_core::reactor::Remote,
     relay_selector: relays::RelaySelector,
     last_generated_relay: Option<Relay>,
     last_generated_bridge_relay: Option<Relay>,
@@ -437,11 +437,11 @@ where
         )
         .map_err(Error::TunnelError)?;
 
-        let wireguard_key_manager = wireguard::KeyManager::new(
-            internal_event_tx.clone(),
-            rpc_handle.clone(),
-            tokio_remote.clone(),
-        );
+        // let wireguard_key_manager = wireguard::KeyManager::new(
+        //     internal_event_tx.clone(),
+        //     rpc_handle.clone(),
+        //     tokio_remote.clone(),
+        // );
 
         // Attempt to download a fresh relay list
         relay_selector.update();
@@ -457,11 +457,11 @@ where
             event_listener,
             settings,
             account_history,
-            wg_key_proxy: WireguardKeyProxy::new(rpc_handle.clone()),
-            accounts_proxy: AccountsProxy::new(rpc_handle.clone()),
-            https_handle,
-            wireguard_key_manager,
-            tokio_remote,
+            // wg_key_proxy: WireguardKeyProxy::new(rpc_handle.clone()),
+            // accounts_proxy: AccountsProxy::new(rpc_handle.clone()),
+            // https_handle,
+            // wireguard_key_manager,
+            // tokio_remote,
             relay_selector,
             last_generated_relay: None,
             last_generated_bridge_relay: None,
@@ -471,18 +471,18 @@ where
 
         daemon.ensure_wireguard_keys_for_current_account();
 
-        if let Some(token) = daemon.settings.get_account_token() {
-            daemon.wireguard_key_manager.set_rotation_interval(
-                &mut daemon.account_history,
-                token,
-                daemon
-                    .settings
-                    .get_tunnel_options()
-                    .wireguard
-                    .automatic_rotation
-                    .map(|hours| Duration::from_secs(60u64 * 60u64 * hours as u64)),
-            );
-        }
+//         if let Some(token) = daemon.settings.get_account_token() {
+//             daemon.wireguard_key_manager.set_rotation_interval(
+//                 &mut daemon.account_history,
+//                 token,
+//                 daemon
+//                     .settings
+//                     .get_tunnel_options()
+//                     .wireguard
+//                     .automatic_rotation
+//                     .map(|hours| Duration::from_secs(60u64 * 60u64 * hours as u64)),
+//             );
+//         }
 
         Ok(daemon)
     }
@@ -958,42 +958,43 @@ where
     }
 
     fn on_get_current_location(&self, tx: oneshot::Sender<Option<GeoIpLocation>>) {
-        use self::TunnelState::*;
-        let get_location: Box<dyn Future<Item = Option<GeoIpLocation>, Error = ()> + Send> =
-            match &self.tunnel_state {
-                Disconnected => Box::new(self.get_geo_location().map(Some)),
-                Connecting { location, .. } => Box::new(future::result(Ok(location.clone()))),
-                Disconnecting(..) => Box::new(future::result(Ok(self.build_location_from_relay()))),
-                Connected { location, .. } => {
-                    let relay_location = location.clone();
-                    Box::new(
-                        self.get_geo_location()
-                            .map(|fetched_location| GeoIpLocation {
-                                ipv4: fetched_location.ipv4,
-                                ipv6: fetched_location.ipv6,
-                                ..relay_location.unwrap_or(fetched_location)
-                            })
-                            .map(Some),
-                    )
-                }
-                Error(..) => {
-                    // We are not online at all at this stage so no location data is available.
-                    Box::new(future::result(Ok(None)))
-                }
-            };
+        // use self::TunnelState::*;
+        // let get_location: Box<dyn Future<Item = Option<GeoIpLocation>, Error = ()> + Send> =
+        //     match &self.tunnel_state {
+        //         Disconnected => Box::new(self.get_geo_location().map(Some)),
+        //         Connecting { location, .. } => Box::new(future::result(Ok(location.clone()))),
+        //         Disconnecting(..) => Box::new(future::result(Ok(self.build_location_from_relay()))),
+        //         Connected { location, .. } => {
+        //             let relay_location = location.clone();
+        //             Box::new(
+        //                 self.get_geo_location()
+        //                     .map(|fetched_location| GeoIpLocation {
+        //                         ipv4: fetched_location.ipv4,
+        //                         ipv6: fetched_location.ipv6,
+        //                         ..relay_location.unwrap_or(fetched_location)
+        //                     })
+        //                     .map(Some),
+        //             )
+        //         }
+        //         Error(..) => {
+        //             // We are not online at all at this stage so no location data is available.
+        //             Box::new(future::result(Ok(None)))
+        //         }
+        //     };
 
-        self.tokio_remote.spawn(move |_| {
-            get_location.map(|location| Self::oneshot_send(tx, location, "current location"))
-        });
+        // self.tokio_remote.spawn(move |_| {
+        //     get_location.map(|location| Self::oneshot_send(tx, location, "current location"))
+        // });
+        Self::oneshot_send(tx, None, "current location");
     }
 
-    fn get_geo_location(&self) -> impl Future<Item = GeoIpLocation, Error = ()> {
-        let https_handle = self.https_handle.clone();
+    // fn get_geo_location(&self) -> impl Future<Item = GeoIpLocation, Error = ()> {
+    //     // let https_handle = self.https_handle.clone();
 
-        geoip::send_location_request(https_handle).map_err(|e| {
-            warn!("Unable to fetch GeoIP location: {}", e.display_chain());
-        })
-    }
+    //     // geoip::send_location_request(https_handle).map_err(|e| {
+    //     //     warn!("Unable to fetch GeoIP location: {}", e.display_chain());
+    //     // })
+    // }
 
     fn build_location_from_relay(&self) -> Option<GeoIpLocation> {
         let relay = self.last_generated_relay.as_ref()?;
@@ -1021,27 +1022,27 @@ where
         &mut self,
         tx: oneshot::Sender<std::result::Result<String, mullvad_rpc::Error>>,
     ) {
-        let daemon_tx = self.tx.clone();
-        let future = self.accounts_proxy.create_account().then(
-            move |result| -> std::result::Result<(), ()> {
-                match result {
-                    Ok(account_token) => {
-                        let _ = daemon_tx.unbounded_send(InternalDaemonEvent::NewAccountEvent(
-                            account_token,
-                            tx,
-                        ));
-                    }
-                    Err(err) => {
-                        let _ = tx.send(Err(err));
-                    }
-                };
-                Ok(())
-            },
-        );
+        // let daemon_tx = self.tx.clone();
+        // let future = self.accounts_proxy.create_account().then(
+        //     move |result| -> std::result::Result<(), ()> {
+        //         match result {
+        //             Ok(account_token) => {
+        //                 let _ = daemon_tx.unbounded_send(InternalDaemonEvent::NewAccountEvent(
+        //                     account_token,
+        //                     tx,
+        //                 ));
+        //             }
+        //             Err(err) => {
+        //                 let _ = tx.send(Err(err));
+        //             }
+        //         };
+        //         Ok(())
+        //     },
+        // );
 
-        if self.tokio_remote.execute(future).is_err() {
-            log::error!("Failed to spawn future for creating a new account");
-        }
+//         if self.tokio_remote.execute(future).is_err() {
+//             log::error!("Failed to spawn future for creating a new account");
+//         }
     }
 
     fn on_get_account_data(
@@ -1049,21 +1050,21 @@ where
         tx: oneshot::Sender<BoxFuture<AccountData, mullvad_rpc::Error>>,
         account_token: AccountToken,
     ) {
-        let rpc_call = self
-            .accounts_proxy
-            .get_expiry(account_token)
-            .map(|expiry| AccountData { expiry });
-        Self::oneshot_send(tx, Box::new(rpc_call), "account data")
+        // let rpc_call = self
+        //     .accounts_proxy
+        //     .get_expiry(account_token)
+        //     .map(|expiry| AccountData { expiry });
+        // Self::oneshot_send(tx, Box::new(rpc_call), "account data")
     }
 
     fn on_get_www_auth_token(
         &mut self,
         tx: oneshot::Sender<BoxFuture<String, mullvad_rpc::Error>>,
     ) {
-        if let Some(account_token) = self.settings.get_account_token() {
-            let rpc_call = self.accounts_proxy.get_www_auth_token(account_token);
-            Self::oneshot_send(tx, Box::new(rpc_call), "get_www_auth_token response")
-        }
+        // if let Some(account_token) = self.settings.get_account_token() {
+        //     let rpc_call = self.accounts_proxy.get_www_auth_token(account_token);
+        //     Self::oneshot_send(tx, Box::new(rpc_call), "get_www_auth_token response")
+        // }
     }
 
     fn on_submit_voucher(
@@ -1071,10 +1072,10 @@ where
         tx: oneshot::Sender<BoxFuture<VoucherSubmission, mullvad_rpc::Error>>,
         voucher: String,
     ) {
-        if let Some(account_token) = self.settings.get_account_token() {
-            let rpc_call = self.accounts_proxy.submit_voucher(account_token, voucher);
-            Self::oneshot_send(tx, Box::new(rpc_call), "submit_voucher response");
-        }
+        // if let Some(account_token) = self.settings.get_account_token() {
+        //     let rpc_call = self.accounts_proxy.submit_voucher(account_token, voucher);
+        //     Self::oneshot_send(tx, Box::new(rpc_call), "submit_voucher response");
+        // }
     }
 
     fn on_get_relay_locations(&mut self, tx: oneshot::Sender<RelayList>) {
@@ -1125,11 +1126,11 @@ where
 
             self.ensure_wireguard_keys_for_current_account();
 
-            if let Some(token) = account_token {
-                // update automatic rotation
-                self.wireguard_key_manager
-                    .reset_rotation(&mut self.account_history, token);
-            }
+            // if let Some(token) = account_token {
+            //     // update automatic rotation
+            //     self.wireguard_key_manager
+            //         .reset_rotation(&mut self.account_history, token);
+            // }
         }
         Ok(account_changed)
     }
@@ -1372,119 +1373,119 @@ where
         tx: oneshot::Sender<()>,
         interval: Option<u32>,
     ) {
-        let save_result = self.settings.set_wireguard_rotation_interval(interval);
-        match save_result {
-            Ok(settings_changed) => {
-                Self::oneshot_send(tx, (), "set_wireguard_rotation_interval response");
-                if settings_changed {
-                    let account_token = self.settings.get_account_token();
+        // let save_result = self.settings.set_wireguard_rotation_interval(interval);
+        // match save_result {
+        //     Ok(settings_changed) => {
+        //         Self::oneshot_send(tx, (), "set_wireguard_rotation_interval response");
+        //         if settings_changed {
+        //             let account_token = self.settings.get_account_token();
 
-                    if let Some(token) = account_token {
-                        self.wireguard_key_manager.set_rotation_interval(
-                            &mut self.account_history,
-                            token,
-                            interval.map(|hours| Duration::from_secs(60u64 * 60u64 * hours as u64)),
-                        );
-                    }
+        //             if let Some(token) = account_token {
+        //                 self.wireguard_key_manager.set_rotation_interval(
+        //                     &mut self.account_history,
+        //                     token,
+        //                     interval.map(|hours| Duration::from_secs(60u64 * 60u64 * hours as u64)),
+        //                 );
+        //             }
 
-                    self.event_listener.notify_settings(self.settings.clone());
-                }
-            }
-            Err(e) => error!("{}", e.display_chain_with_msg("Unable to save settings")),
-        }
+        //             self.event_listener.notify_settings(self.settings.clone());
+        //         }
+        //     }
+        //     Err(e) => error!("{}", e.display_chain_with_msg("Unable to save settings")),
+        // }
     }
 
     fn ensure_wireguard_keys_for_current_account(&mut self) {
-        if let Some(account) = self.settings.get_account_token() {
-            if self
-                .account_history
-                .get(&account)
-                .map(|entry| entry.map(|e| e.wireguard.is_none()).unwrap_or(true))
-                .unwrap_or(true)
-            {
-                log::info!("Automatically generating new wireguard key for account");
-                if let Err(e) = self
-                    .wireguard_key_manager
-                    .generate_key_async(account.to_owned())
-                {
-                    log::error!(
-                        "{}",
-                        e.display_chain_with_msg("Failed to start generating wireguard key")
-                    );
-                }
-            } else {
-                log::info!("Account already has wireguard key");
-            }
-        }
+        // if let Some(account) = self.settings.get_account_token() {
+        //     if self
+        //         .account_history
+        //         .get(&account)
+        //         .map(|entry| entry.map(|e| e.wireguard.is_none()).unwrap_or(true))
+        //         .unwrap_or(true)
+        //     {
+        //         log::info!("Automatically generating new wireguard key for account");
+        //         if let Err(e) = self
+        //             .wireguard_key_manager
+        //             .generate_key_async(account.to_owned())
+        //         {
+        //             log::error!(
+        //                 "{}",
+        //                 e.display_chain_with_msg("Failed to start generating wireguard key")
+        //             );
+        //         }
+        //     } else {
+        //         log::info!("Account already has wireguard key");
+        //     }
+        // }
     }
 
     fn on_generate_wireguard_key(&mut self, tx: oneshot::Sender<KeygenEvent>) {
-        let mut result = || -> std::result::Result<KeygenEvent, String> {
-            let account_token = self
-                .settings
-                .get_account_token()
-                .ok_or_else(|| "No account token set".to_owned())?;
+        // let mut result = || -> std::result::Result<KeygenEvent, String> {
+        //     let account_token = self
+        //         .settings
+        //         .get_account_token()
+        //         .ok_or_else(|| "No account token set".to_owned())?;
 
-            let mut account_entry = self
-                .account_history
-                .get(&account_token)
-                .map_err(|e| format!("Failed to read account entry from history: {}", e))
-                .map(|data| {
-                    data.unwrap_or_else(|| {
-                        log::error!("Account token set in settings but not in account history");
-                        account_history::AccountEntry {
-                            account: account_token.clone(),
-                            wireguard: None,
-                        }
-                    })
-                })?;
+        //     let mut account_entry = self
+        //         .account_history
+        //         .get(&account_token)
+        //         .map_err(|e| format!("Failed to read account entry from history: {}", e))
+        //         .map(|data| {
+        //             data.unwrap_or_else(|| {
+        //                 log::error!("Account token set in settings but not in account history");
+        //                 account_history::AccountEntry {
+        //                     account: account_token.clone(),
+        //                     wireguard: None,
+        //                 }
+        //             })
+        //         })?;
 
-            let gen_result = match &account_entry.wireguard {
-                Some(wireguard_data) => self
-                    .wireguard_key_manager
-                    .replace_key(account_token.clone(), wireguard_data.get_public_key()),
-                None => self
-                    .wireguard_key_manager
-                    .generate_key_sync(account_token.clone()),
-            };
+        //     let gen_result = match &account_entry.wireguard {
+        //         Some(wireguard_data) => self
+        //             .wireguard_key_manager
+        //             .replace_key(account_token.clone(), wireguard_data.get_public_key()),
+        //         None => self
+        //             .wireguard_key_manager
+        //             .generate_key_sync(account_token.clone()),
+        //     };
 
-            match gen_result {
-                Ok(new_data) => {
-                    let public_key = new_data.get_public_key();
-                    account_entry.wireguard = Some(new_data.clone());
-                    self.account_history.insert(account_entry).map_err(|e| {
-                        format!("Failed to add new wireguard key to account data: {}", e)
-                    })?;
-                    self.reconnect_tunnel();
-                    let keygen_event = KeygenEvent::NewKey(public_key);
-                    self.event_listener.notify_key_event(keygen_event.clone());
+        //     match gen_result {
+        //         Ok(new_data) => {
+        //             let public_key = new_data.get_public_key();
+        //             account_entry.wireguard = Some(new_data.clone());
+        //             self.account_history.insert(account_entry).map_err(|e| {
+        //                 format!("Failed to add new wireguard key to account data: {}", e)
+        //             })?;
+        //             self.reconnect_tunnel();
+        //             let keygen_event = KeygenEvent::NewKey(public_key);
+        //             self.event_listener.notify_key_event(keygen_event.clone());
 
-                    // update automatic rotation
-                    self.wireguard_key_manager.set_rotation_interval(
-                        &mut self.account_history,
-                        account_token.clone(),
-                        self.settings
-                            .get_tunnel_options()
-                            .wireguard
-                            .automatic_rotation
-                            .map(|hours| Duration::from_secs(60u64 * 60u64 * hours as u64)),
-                    );
+        //             // update automatic rotation
+        //             self.wireguard_key_manager.set_rotation_interval(
+        //                 &mut self.account_history,
+        //                 account_token.clone(),
+        //                 self.settings
+        //                     .get_tunnel_options()
+        //                     .wireguard
+        //                     .automatic_rotation
+        //                     .map(|hours| Duration::from_secs(60u64 * 60u64 * hours as u64)),
+        //             );
 
-                    Ok(keygen_event)
-                }
-                Err(wireguard::Error::TooManyKeys) => Ok(KeygenEvent::TooManyKeys),
-                Err(e) => Err(format!("Failed to generate new key - {}", e)),
-            }
-        };
+        //             Ok(keygen_event)
+        //         }
+        //         Err(wireguard::Error::TooManyKeys) => Ok(KeygenEvent::TooManyKeys),
+        //         Err(e) => Err(format!("Failed to generate new key - {}", e)),
+        //     }
+        // };
 
-        match result() {
-            Ok(key_event) => {
-                Self::oneshot_send(tx, key_event, "generate_wireguard_key response");
-            }
-            Err(e) => {
-                log::error!("Failed to generate new wireguard key - {}", e);
-            }
-        }
+        // match result() {
+        //     Ok(key_event) => {
+        //         Self::oneshot_send(tx, key_event, "generate_wireguard_key response");
+        //     }
+        //     Err(e) => {
+        //         log::error!("Failed to generate new wireguard key - {}", e);
+        //     }
+        // }
     }
 
     fn on_get_wireguard_key(&mut self, tx: oneshot::Sender<Option<wireguard::PublicKey>>) {
@@ -1498,41 +1499,41 @@ where
     }
 
     fn on_verify_wireguard_key(&mut self, tx: oneshot::Sender<bool>) {
-        let account = match self.settings.get_account_token() {
-            Some(account) => account,
-            None => {
-                Self::oneshot_send(tx, false, "verify_wireguard_key response");
-                return;
-            }
-        };
+        // let account = match self.settings.get_account_token() {
+        //     Some(account) => account,
+        //     None => {
+        //         Self::oneshot_send(tx, false, "verify_wireguard_key response");
+        //         return;
+        //     }
+        // };
 
-        let key = self
-            .account_history
-            .get(&account)
-            .map(|entry| entry.and_then(|e| e.wireguard.map(|wg| wg.private_key.public_key())));
+        // let key = self
+        //     .account_history
+        //     .get(&account)
+        //     .map(|entry| entry.and_then(|e| e.wireguard.map(|wg| wg.private_key.public_key())));
 
-        let public_key = match key {
-            Ok(Some(public_key)) => public_key,
-            Ok(None) => {
-                Self::oneshot_send(tx, false, "verify_wireguard_key response");
-                return;
-            }
-            Err(e) => {
-                log::error!("Failed to read key data: {}", e);
-                return;
-            }
-        };
+        // let public_key = match key {
+        //     Ok(Some(public_key)) => public_key,
+        //     Ok(None) => {
+        //         Self::oneshot_send(tx, false, "verify_wireguard_key response");
+        //         return;
+        //     }
+        //     Err(e) => {
+        //         log::error!("Failed to read key data: {}", e);
+        //         return;
+        //     }
+        // };
 
-        let fut = self
-            .wg_key_proxy
-            .check_wg_key(account, public_key.clone())
-            .map(|is_valid| {
-                Self::oneshot_send(tx, is_valid, "verify_wireguard_key response");
-            })
-            .map_err(|e| log::error!("Failed to verify wireguard key - {}", e));
-        if let Err(e) = self.tokio_remote.execute(fut) {
-            log::error!("Failed to spawn a future to verify wireguard key: {:?}", e);
-        }
+        // let fut = self
+        //     .wg_key_proxy
+        //     .check_wg_key(account, public_key.clone())
+        //     .map(|is_valid| {
+        //         Self::oneshot_send(tx, is_valid, "verify_wireguard_key response");
+        //     })
+        //     .map_err(|e| log::error!("Failed to verify wireguard key - {}", e));
+        // if let Err(e) = self.tokio_remote.execute(fut) {
+        //     log::error!("Failed to spawn a future to verify wireguard key: {:?}", e);
+        // }
     }
 
     fn on_get_settings(&self, tx: oneshot::Sender<Settings>) {
