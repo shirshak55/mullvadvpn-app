@@ -7,6 +7,7 @@
 //! the License, or (at your option) any later version.
 
 #![deny(rust_2018_idioms)]
+#![allow(unused_imports, dead_code, unused_variables, unreachable_code)]
 
 use log::{debug, error, info, warn};
 use mullvad_daemon::{logging, version, Daemon};
