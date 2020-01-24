@@ -471,18 +471,18 @@ where
 
         daemon.ensure_wireguard_keys_for_current_account();
 
-//         if let Some(token) = daemon.settings.get_account_token() {
-//             daemon.wireguard_key_manager.set_rotation_interval(
-//                 &mut daemon.account_history,
-//                 token,
-//                 daemon
-//                     .settings
-//                     .get_tunnel_options()
-//                     .wireguard
-//                     .automatic_rotation
-//                     .map(|hours| Duration::from_secs(60u64 * 60u64 * hours as u64)),
-//             );
-//         }
+        //         if let Some(token) = daemon.settings.get_account_token() {
+        //             daemon.wireguard_key_manager.set_rotation_interval(
+        //                 &mut daemon.account_history,
+        //                 token,
+        //                 daemon
+        //                     .settings
+        //                     .get_tunnel_options()
+        //                     .wireguard
+        //                     .automatic_rotation
+        //                     .map(|hours| Duration::from_secs(60u64 * 60u64 * hours as u64)),
+        //             );
+        //         }
 
         Ok(daemon)
     }
@@ -957,27 +957,17 @@ where
     fn on_get_current_location(&self, tx: oneshot::Sender<Option<GeoIpLocation>>) {
         use self::TunnelState::*;
         // let get_location: Box<dyn Future<Item = Option<GeoIpLocation>, Error = ()> + Send> =
-        let location =
-            match &self.tunnel_state {
-                Disconnected => {
-                    None
-                },
-                Connecting { location, .. } => location.clone(),
-                Disconnecting(..) => self.build_location_from_relay(),
-                Connected { location, .. } => {
-                    let relay_location = location.clone();
-                    relay_location
-                }
-                Error(..) => {
-                    None
-                }
-            };
+        let location = match &self.tunnel_state {
+            Disconnected => None,
+            Connecting { location, .. } => location.clone(),
+            Disconnecting(..) => self.build_location_from_relay(),
+            Connected { location, .. } => {
+                let relay_location = location.clone();
+                relay_location
+            }
+            Error(..) => None,
+        };
         Self::oneshot_send(tx, location, "current location");
-
-        // self.tokio_remote.spawn(move |_| {
-        //     get_location.map(|location| Self::oneshot_send(tx, location, "current location"))
-        // });
-        ;
     }
 
     // fn get_geo_location(&self) -> impl Future<Item = GeoIpLocation, Error = ()> {
@@ -1032,9 +1022,9 @@ where
         //     },
         // );
 
-//         if self.tokio_remote.execute(future).is_err() {
-//             log::error!("Failed to spawn future for creating a new account");
-//         }
+        //         if self.tokio_remote.execute(future).is_err() {
+        //             log::error!("Failed to spawn future for creating a new account");
+        //         }
     }
 
     fn on_get_account_data(
@@ -1376,8 +1366,8 @@ where
         //                 self.wireguard_key_manager.set_rotation_interval(
         //                     &mut self.account_history,
         //                     token,
-        //                     interval.map(|hours| Duration::from_secs(60u64 * 60u64 * hours as u64)),
-        //                 );
+        //                     interval.map(|hours| Duration::from_secs(60u64 * 60u64 * hours as
+        // u64)),                 );
         //             }
 
         //             self.event_listener.notify_settings(self.settings.clone());

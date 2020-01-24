@@ -52,7 +52,6 @@ pub struct KeyManager {
     http_handle: mullvad_rpc::HttpHandle,
     tokio_remote: Remote,
     // current_job: Option<CancelHandle>,
-
     abort_scheduler_tx: Option<CancelHandle>,
     auto_rotation_interval: Duration,
 }
@@ -201,7 +200,6 @@ impl KeyManager {
         //             }
         //         }
         //     });
-
 
         // let (fut, cancel_handle) = Cancellable::new(upload_future);
         // let daemon_tx = self.daemon_tx.clone();
@@ -407,7 +405,6 @@ impl KeyManager {
 
         // // Box::new(fut.then(create_repeat_future).map(|_| ()))
         Box::new(futures::future::ok(()))
-
     }
 
     fn run_automatic_rotation(&mut self, account_token: AccountToken, public_key: PublicKey) {
@@ -492,4 +489,3 @@ where
         }
     }
 }
-
