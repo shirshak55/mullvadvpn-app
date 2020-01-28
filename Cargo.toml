@@ -14,3 +14,6 @@ members = [
     "talpid-ipc",
 ]
 exclude = ["dist-assets/binaries/shadowsocks-rust"]
+
+[replace]
+"tokio-core:0.1.17" = { git = "https://github.com/mullvad/tokio-core", branch = "add-single-threaded-core" }

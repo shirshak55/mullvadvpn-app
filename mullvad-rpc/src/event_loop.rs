@@ -26,7 +26,7 @@ fn create_core<F, T>(init: F) -> io::Result<(Core, T)>
 where
     F: FnOnce(&mut Core) -> T + Send + 'static,
 {
-    let mut core = Core::new()?;
+    let mut core = Core::new_single_threaded()?;
     let out = init(&mut core);
     Ok((core, out))
 }
